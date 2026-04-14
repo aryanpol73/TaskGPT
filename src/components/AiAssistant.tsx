@@ -12,8 +12,12 @@ interface AiMessage {
   content: string;
 }
 
-const AiAssistant: React.FC = () => {
-  const [open, setOpen] = useState(false);
+interface AiAssistantProps {
+  inline?: boolean;
+}
+
+const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
+  const [open, setOpen] = useState(inline);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,7 +63,7 @@ const AiAssistant: React.FC = () => {
     }
   };
 
-  if (!open) {
+  if (!open && !inline) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -71,8 +75,14 @@ const AiAssistant: React.FC = () => {
     );
   }
 
+  if (!open) return null;
+
   return (
-    <div className="fixed bottom-6 right-6 w-[380px] max-h-[520px] glass-strong flex flex-col z-50 animate-slide-up shadow-2xl">
+    <div className={cn(
+      inline
+        ? 'w-full glass-strong flex flex-col rounded-2xl'
+        : 'fixed bottom-6 right-6 w-[380px] max-h-[520px] glass-strong flex flex-col z-50 animate-slide-up shadow-2xl'
+    )}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/50">
         <div className="flex items-center gap-2">
@@ -84,9 +94,11 @@ const AiAssistant: React.FC = () => {
             <p className="text-xs text-muted-foreground">Ask me anything about your tasks</p>
           </div>
         </div>
-        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
-          <X className="w-5 h-5" />
-        </button>
+        {!inline && (
+          <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Messages */}
