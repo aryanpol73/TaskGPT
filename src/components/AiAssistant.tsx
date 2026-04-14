@@ -12,8 +12,12 @@ interface AiMessage {
   content: string;
 }
 
-const AiAssistant: React.FC = () => {
-  const [open, setOpen] = useState(false);
+interface AiAssistantProps {
+  inline?: boolean;
+}
+
+const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
+  const [open, setOpen] = useState(inline);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [loading, setLoading] = useState(false);

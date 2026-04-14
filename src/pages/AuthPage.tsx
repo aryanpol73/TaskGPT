@@ -60,10 +60,8 @@ const AuthPage: React.FC = () => {
       <div className="w-full max-w-md relative z-10 animate-slide-up">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary ai-glow mb-4">
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">TaskFlow AI</h1>
+          <img src="/logo.png" alt="TaskGPT" className="w-20 h-20 rounded-2xl mx-auto mb-4 ai-glow" />
+          <h1 className="text-3xl font-bold text-foreground mb-2">TaskGPT</h1>
           <p className="text-muted-foreground">Your AI-powered productivity assistant</p>
         </div>
 
