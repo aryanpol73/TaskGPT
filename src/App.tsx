@@ -15,9 +15,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoutes = () => {
+const ProtectedRoute = () => {
   const { user, loading } = useAuth();
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -25,21 +24,8 @@ const ProtectedRoutes = () => {
       </div>
     );
   }
-
   if (!user) return <Navigate to="/auth" replace />;
-
-  return (
-    <AppLayout>
-      <Routes>
-        <Route index element={<Navigate to="/tasks" replace />} />
-        <Route path="tasks" element={<Dashboard />} />
-        <Route path="calendar" element={<CalendarPage />} />
-        <Route path="mail" element={<MailPage />} />
-        <Route path="ai" element={<AiPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Routes>
-    </AppLayout>
-  );
+  return <AppLayout />;
 };
 
 const AuthRoute = () => {
@@ -64,7 +50,15 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthRoute />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
+            <Route path="/" element={<ProtectedRoute />}>
+              <Route index element={<Navigate to="/tasks" replace />} />
+              <Route path="tasks" element={<Dashboard />} />
+              <Route path="calendar" element={<CalendarPage />} />
+              <Route path="mail" element={<MailPage />} />
+              <Route path="ai" element={<AiPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
