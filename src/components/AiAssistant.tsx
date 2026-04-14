@@ -94,9 +94,11 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
             <p className="text-xs text-muted-foreground">Ask me anything about your tasks</p>
           </div>
         </div>
-        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
-          <X className="w-5 h-5" />
-        </button>
+        {!inline && (
+          <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Messages */}
