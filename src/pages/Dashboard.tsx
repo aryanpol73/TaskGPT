@@ -3,9 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTasks } from '@/hooks/useTasks';
 import TaskList from '@/components/TaskList';
 import AddTaskBar from '@/components/AddTaskBar';
-import AiAssistant from '@/components/AiAssistant';
-import { Button } from '@/components/ui/button';
-import { LogOut, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();

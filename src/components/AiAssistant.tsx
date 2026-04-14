@@ -63,7 +63,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
     }
   };
 
-  if (!open) {
+  if (!open && !inline) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -75,8 +75,14 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
     );
   }
 
+  if (!open) return null;
+
   return (
-    <div className="fixed bottom-6 right-6 w-[380px] max-h-[520px] glass-strong flex flex-col z-50 animate-slide-up shadow-2xl">
+    <div className={cn(
+      inline
+        ? 'w-full glass-strong flex flex-col rounded-2xl'
+        : 'fixed bottom-6 right-6 w-[380px] max-h-[520px] glass-strong flex flex-col z-50 animate-slide-up shadow-2xl'
+    )}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/50">
         <div className="flex items-center gap-2">
