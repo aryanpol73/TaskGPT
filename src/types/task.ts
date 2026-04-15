@@ -12,6 +12,7 @@ export type Task = {
   parent_task_id: string | null;
   sort_order: number;
   completed_at: string | null;
+  reminder_at: string | null;
   created_at: string;
   updated_at: string;
 };
