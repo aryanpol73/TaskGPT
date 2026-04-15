@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Task } from '@/types/task';
-import { useToggleTask, useDeleteTask } from '@/hooks/useTasks';
-import { Check, Trash2, Calendar, Tag } from 'lucide-react';
+import { useToggleTask, useDeleteTask, useUpdateTask } from '@/hooks/useTasks';
+import { Check, Trash2, Calendar, Tag, Bell, BellOff } from 'lucide-react';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface TaskItemProps {
   task: Task;
@@ -31,8 +35,39 @@ function formatDueDate(dateStr: string): string {
 const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const toggleTask = useToggleTask();
   const deleteTask = useDeleteTask();
+  const updateTask = useUpdateTask();
   const isCompleted = task.status === 'completed';
   const isOverdue = task.due_date && isPast(new Date(task.due_date)) && !isCompleted;
+  const [reminderDate, setReminderDate] = useState('');
+  const [reminderTime, setReminderTime] = useState('');
+
+  const handleSetReminder = () => {
+    if (!reminderDate || !reminderTime) {
+      toast.error('Please set both date and time');
+      return;
+    }
+    const reminderAt = new Date(`${reminderDate}T${reminderTime}`).toISOString();
+    updateTask.mutate({ id: task.id, updates: { reminder_at: reminderAt } as any });
+    toast.success('Reminder set! 🔔');
+
+    // Schedule browser notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const delay = new Date(reminderAt).getTime() - Date.now();
+      if (delay > 0) {
+        setTimeout(() => {
+          new Notification('TaskGPT Reminder', {
+            body: task.title,
+            icon: '/logo.png',
+          });
+        }, delay);
+      }
+    }
+  };
+
+  const clearReminder = () => {
+    updateTask.mutate({ id: task.id, updates: { reminder_at: null } as any });
+    toast.success('Reminder cleared');
+  };
 
   return (
     <div
@@ -89,6 +124,14 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
               </div>
             )}
 
+            {/* Reminder indicator */}
+            {task.reminder_at && (
+              <div className="flex items-center gap-1 text-xs text-primary">
+                <Bell className="w-3 h-3" />
+                <span>{format(new Date(task.reminder_at), 'MMM d, HH:mm')}</span>
+              </div>
+            )}
+
             {/* Tags */}
             {task.tags && task.tags.length > 0 && (
               <div className="flex items-center gap-1">
@@ -103,14 +146,45 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
           </div>
         </div>
 
-        {/* Delete */}
-        <button
-          onClick={() => deleteTask.mutate(task.id)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-1"
-          aria-label="Delete task"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        {/* Actions */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Reminder */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="text-muted-foreground hover:text-primary p-1" aria-label="Set reminder">
+                {task.reminder_at ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 glass-strong border-border p-3 space-y-3">
+              {task.reminder_at ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-foreground">Reminder: {format(new Date(task.reminder_at), 'MMM d, HH:mm')}</p>
+                  <Button size="sm" variant="outline" className="w-full" onClick={clearReminder}>
+                    Clear Reminder
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-foreground">Set Reminder</p>
+                  <Input type="date" value={reminderDate} onChange={e => setReminderDate(e.target.value)} className="glass-subtle border-border text-sm" />
+                  <Input type="time" value={reminderTime} onChange={e => setReminderTime(e.target.value)} className="glass-subtle border-border text-sm" />
+                  <Button size="sm" className="w-full gradient-primary text-primary-foreground" onClick={handleSetReminder}>
+                    Set Reminder 🔔
+                  </Button>
+                </>
+              )}
+            </PopoverContent>
+          </Popover>
+
+          {/* Delete */}
+          <button
+            onClick={() => deleteTask.mutate(task.id)}
+            className="text-muted-foreground hover:text-destructive p-1"
+            aria-label="Delete task"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

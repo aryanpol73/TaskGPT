@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          current_streak: number | null
+          display_name: string | null
+          id: string
+          last_completed_date: string | null
+          longest_streak: number | null
+          monthly_points: number | null
+          selected_avatar: string | null
+          total_points: number | null
+          updated_at: string
+          user_id: string
+          weekly_points: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          current_streak?: number | null
+          display_name?: string | null
+          id?: string
+          last_completed_date?: string | null
+          longest_streak?: number | null
+          monthly_points?: number | null
+          selected_avatar?: string | null
+          total_points?: number | null
+          updated_at?: string
+          user_id: string
+          weekly_points?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          current_streak?: number | null
+          display_name?: string | null
+          id?: string
+          last_completed_date?: string | null
+          longest_streak?: number | null
+          monthly_points?: number | null
+          selected_avatar?: string | null
+          total_points?: number | null
+          updated_at?: string
+          user_id?: string
+          weekly_points?: number | null
+        }
+        Relationships: []
+      }
+      rewards: {
+        Row: {
+          description: string | null
+          earned_at: string
+          id: string
+          points_earned: number | null
+          reward_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          description?: string | null
+          earned_at?: string
+          id?: string
+          points_earned?: number | null
+          reward_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          description?: string | null
+          earned_at?: string
+          id?: string
+          points_earned?: number | null
+          reward_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           completed_at: string | null
@@ -25,6 +103,7 @@ export type Database = {
           parent_task_id: string | null
           priority: string
           recurrence_pattern: string | null
+          reminder_at: string | null
           sort_order: number | null
           status: string
           tags: string[] | null
@@ -42,6 +121,7 @@ export type Database = {
           parent_task_id?: string | null
           priority?: string
           recurrence_pattern?: string | null
+          reminder_at?: string | null
           sort_order?: number | null
           status?: string
           tags?: string[] | null
@@ -59,6 +139,7 @@ export type Database = {
           parent_task_id?: string | null
           priority?: string
           recurrence_pattern?: string | null
+          reminder_at?: string | null
           sort_order?: number | null
           status?: string
           tags?: string[] | null
