@@ -82,7 +82,7 @@ const IntegrationsSection: React.FC<Props> = ({ onBack }) => {
               <p className="text-xs text-muted-foreground">{int.description}</p>
             </div>
             {int.connected ? (
-              <div className="flex items-center gap-1.5 text-xs text-green-400 font-medium">
+              <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
                 <Check className="w-3.5 h-3.5" />
                 Connected
               </div>
