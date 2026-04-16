@@ -1,41 +1,89 @@
-import React from 'react';
-import { ArrowLeft, ExternalLink, Check, Loader2 } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { ArrowLeft, ExternalLink, Check, Loader2, Unplug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGoogleConnected } from '@/hooks/useGoogleApi';
-import { lovable } from '@/integrations/lovable/index';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 
 interface Props {
   onBack: () => void;
 }
 
 const IntegrationsSection: React.FC<Props> = ({ onBack }) => {
-  const { data: isGoogleConnected, isLoading } = useGoogleConnected();
+  const { data: isGoogleConnected, isLoading, refetch } = useGoogleConnected();
   const [connecting, setConnecting] = React.useState(false);
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Handle OAuth callback code
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (!code) return;
+
+    const exchangeCode = async () => {
+      setConnecting(true);
+      try {
+        const redirectUri = `${window.location.origin}/settings?section=integrations`;
+        const { data, error } = await supabase.functions.invoke('google-connect', {
+          body: { action: 'exchange_code', code, redirect_uri: redirectUri },
+        });
+
+        if (error || data?.error) {
+          toast.error(data?.error || 'Failed to connect Google services');
+        } else {
+          toast.success('Google services connected successfully!');
+          queryClient.invalidateQueries({ queryKey: ['google-connected'] });
+          refetch();
+        }
+      } catch {
+        toast.error('Failed to connect Google services');
+      } finally {
+        setConnecting(false);
+        // Clean up URL
+        searchParams.delete('code');
+        searchParams.delete('state');
+        searchParams.delete('scope');
+        setSearchParams(searchParams, { replace: true });
+      }
+    };
+
+    exchangeCode();
+  }, [searchParams]);
 
   const handleGoogleConnect = async () => {
     setConnecting(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-          scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
-        },
+      const redirectUri = `${window.location.origin}/settings?section=integrations`;
+      const { data, error } = await supabase.functions.invoke('google-connect', {
+        body: { action: 'get_auth_url', redirect_uri: redirectUri },
       });
 
-      if (result.error) {
-        toast.error('Connection failed. Please try again.');
-      }
-
-      if (result.redirected) {
+      if (error || data?.error) {
+        toast.error('Failed to start Google connection');
+        setConnecting(false);
         return;
       }
+
+      // Redirect to Google OAuth
+      window.location.href = data.url;
     } catch {
       toast.error('Failed to connect');
-    } finally {
       setConnecting(false);
+    }
+  };
+
+  const handleGoogleDisconnect = async () => {
+    try {
+      await supabase.functions.invoke('google-connect', {
+        body: { action: 'disconnect' },
+      });
+      toast.success('Google services disconnected');
+      queryClient.invalidateQueries({ queryKey: ['google-connected'] });
+      refetch();
+    } catch {
+      toast.error('Failed to disconnect');
     }
   };
 
@@ -46,6 +94,7 @@ const IntegrationsSection: React.FC<Props> = ({ onBack }) => {
       icon: '📅',
       connected: !!isGoogleConnected,
       onConnect: handleGoogleConnect,
+      onDisconnect: handleGoogleDisconnect,
     },
     {
       name: 'Gmail',
@@ -53,6 +102,7 @@ const IntegrationsSection: React.FC<Props> = ({ onBack }) => {
       icon: '📧',
       connected: !!isGoogleConnected,
       onConnect: handleGoogleConnect,
+      onDisconnect: handleGoogleDisconnect,
     },
     {
       name: 'Slack',
@@ -77,6 +127,13 @@ const IntegrationsSection: React.FC<Props> = ({ onBack }) => {
       </button>
       <h2 className="text-xl font-bold text-foreground">Integrations</h2>
 
+      {connecting && (
+        <div className="glass-subtle p-4 flex items-center gap-3">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Connecting to Google services...</p>
+        </div>
+      )}
+
       <div className="space-y-3">
         {integrations.map(int => (
           <div key={int.name} className="glass p-4 flex items-center gap-4">
@@ -88,9 +145,21 @@ const IntegrationsSection: React.FC<Props> = ({ onBack }) => {
               <p className="text-xs text-muted-foreground">{int.description}</p>
             </div>
             {int.connected ? (
-              <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
-                <Check className="w-3.5 h-3.5" />
-                Connected
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
+                  <Check className="w-3.5 h-3.5" />
+                  Connected
+                </div>
+                {int.onDisconnect && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                    onClick={int.onDisconnect}
+                  >
+                    <Unplug className="w-3 h-3" />
+                  </Button>
+                )}
               </div>
             ) : (
               <Button
