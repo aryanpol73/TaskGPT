@@ -12,8 +12,15 @@ import MailPage from "./pages/MailPage";
 import AiPage from "./pages/AiPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import { useEffect } from "react";
+import { registerServiceWorker } from "@/services/notificationService";
 
 const queryClient = new QueryClient();
+
+// Register service worker on app load
+if (typeof window !== 'undefined') {
+  registerServiceWorker();
+}
 
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
