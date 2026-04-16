@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowLeft, ExternalLink, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGoogleConnected } from '@/hooks/useGoogleApi';
-import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { toast } from 'sonner';
 
 interface Props {
@@ -16,19 +16,21 @@ const IntegrationsSection: React.FC<Props> = ({ onBack }) => {
   const handleGoogleConnect = async () => {
     setConnecting(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-          scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+          scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
         },
       });
-      if (error) {
-        toast.error(error.message || 'Connection failed');
+
+      if (result.error) {
+        toast.error('Connection failed. Please try again.');
+      }
+
+      if (result.redirected) {
+        return;
       }
     } catch {
       toast.error('Failed to connect');
