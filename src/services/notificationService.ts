@@ -53,9 +53,8 @@ export function showLocalNotification(title: string, options?: NotificationOptio
       registration.showNotification(title, {
         icon: '/logo.png',
         badge: '/logo.png',
-        vibrate: [200, 100, 200],
-        ...options,
-      });
+        ...(options || {}),
+      } as any);
     }).catch(() => {
       // Fallback to regular notification
       new Notification(title, { icon: '/logo.png', ...options });
