@@ -3,6 +3,7 @@ import { ArrowLeft, Bell } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { requestNotificationPermission, registerServiceWorker, showLocalNotification } from '@/services/notificationService';
 
 interface Props {
   onBack: () => void;
@@ -21,19 +22,26 @@ const NotificationsSection: React.FC<Props> = ({ onBack }) => {
   }, []);
 
   const requestPermission = async () => {
-    if ('Notification' in window) {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      if (result === 'granted') {
-        toast.success('Notifications enabled!');
-        new Notification('TaskGPT', { body: 'You will now receive task reminders 🎉', icon: '/logo.png' });
-      }
+    const result = await requestNotificationPermission();
+    setPermission(result);
+    if (result === 'granted') {
+      await registerServiceWorker();
+      toast.success('Push notifications enabled!');
+      showLocalNotification('TaskGPT', {
+        body: 'You will now receive task reminders 🎉',
+        tag: 'welcome',
+      });
+    } else {
+      toast.error('Notification permission denied');
     }
   };
 
   const toggle = (key: string, val: boolean, setter: (v: boolean) => void) => {
     localStorage.setItem(key, String(val));
     setter(val);
+    if (val && permission !== 'granted') {
+      requestPermission();
+    }
   };
 
   return (
@@ -49,10 +57,17 @@ const NotificationsSection: React.FC<Props> = ({ onBack }) => {
             <Bell className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-foreground">Enable Browser Notifications</p>
-            <p className="text-xs text-muted-foreground">Get reminded about your tasks</p>
+            <p className="text-sm font-medium text-foreground">Enable Push Notifications</p>
+            <p className="text-xs text-muted-foreground">Get real push notifications on your phone & desktop</p>
           </div>
           <Button size="sm" onClick={requestPermission} className="gradient-primary text-primary-foreground">Enable</Button>
+        </div>
+      )}
+
+      {permission === 'granted' && (
+        <div className="glass p-3 flex items-center gap-2 text-xs text-primary font-medium">
+          <Bell className="w-4 h-4" />
+          Push notifications are active
         </div>
       )}
 
