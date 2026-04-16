@@ -14,6 +14,7 @@ import {
   Puzzle,
   Trophy,
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import ProfileSection from '@/components/settings/ProfileSection';
 import AppearanceSection from '@/components/settings/AppearanceSection';
 import NotificationsSection from '@/components/settings/NotificationsSection';
@@ -27,7 +28,22 @@ type Section = 'main' | 'profile' | 'privacy' | 'notifications' | 'appearance' |
 const SettingsPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
-  const [section, setSection] = useState<Section>('main');
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Use URL query param for section, default to 'main'
+  const sectionFromUrl = (searchParams.get('section') as Section) || 'main';
+  const [section, setSection_] = useState<Section>(sectionFromUrl);
+
+  const setSection = (s: Section) => {
+    setSection_(s);
+    if (s === 'main') {
+      searchParams.delete('section');
+    } else {
+      searchParams.set('section', s);
+    }
+    // Keep other params (like code for OAuth callback)
+    setSearchParams(searchParams, { replace: true });
+  };
 
   const currentAvatar = AVATAR_OPTIONS.find(a => a.id === (profile?.selected_avatar || 'default'));
 
