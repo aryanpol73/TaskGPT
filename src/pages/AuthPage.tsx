@@ -41,8 +41,9 @@ const AuthPage: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
+    // Use current page URL so OAuth callback returns to the installed PWA window
     const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
+      redirect_uri: window.location.href.split('#')[0].split('?')[0],
     });
     if (result.error) {
       toast.error(result.error instanceof Error ? result.error.message : 'Google sign-in failed');
