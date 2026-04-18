@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taskgpt-v1';
+const CACHE_NAME = 'taskgpt-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -6,6 +6,15 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
+});
+
+// Never intercept OAuth callback URLs - they must always hit the network
+// and stay in the same browsing context so the auth session is preserved.
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/~oauth') || url.pathname.startsWith('/auth')) {
+    return; // let browser handle directly, no SW intervention
+  }
 });
 
 // Handle push notifications
