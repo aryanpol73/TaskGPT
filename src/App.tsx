@@ -11,6 +11,7 @@ import CalendarPage from "./pages/CalendarPage";
 import MailPage from "./pages/MailPage";
 import AiPage from "./pages/AiPage";
 import SettingsPage from "./pages/SettingsPage";
+import VaultPage from "./pages/VaultPage";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 import { registerServiceWorker } from "@/services/notificationService";
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="tasks" element={<Dashboard />} />
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="mail" element={<MailPage />} />
+              <Route path="vault" element={<VaultPage />} />
               <Route path="ai" element={<AiPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>

@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,7 @@ const navItems = [
   { label: 'Tasks', icon: ClipboardList, path: '/tasks' },
   { label: 'Calendar', icon: Calendar, path: '/calendar' },
   { label: 'Mail', icon: Mail, path: '/mail' },
+  { label: 'Vault', icon: Lock, path: '/vault' },
   { label: 'AI', icon: Sparkles, path: '/ai' },
   { label: 'Settings', icon: Settings, path: '/settings' },
 ];
