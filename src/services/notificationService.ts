@@ -5,6 +5,29 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     console.warn('Service workers not supported');
     return null;
   }
+
+  const isInIframe = (() => {
+    try {
+      return window.self !== window.top;
+    } catch {
+      return true;
+    }
+  })();
+  const isPreviewHost =
+    window.location.hostname.includes('id-preview--') ||
+    window.location.hostname.includes('lovableproject.com');
+  const isAuthRoute =
+    window.location.pathname.startsWith('/~oauth') ||
+    window.location.pathname.startsWith('/auth') ||
+    window.location.search.includes('code=') ||
+    window.location.hash.includes('access_token');
+
+  if (isInIframe || isPreviewHost || isAuthRoute) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+    return null;
+  }
+
   try {
     const registration = await navigator.serviceWorker.register('/sw.js');
     return registration;

@@ -80,8 +80,7 @@ const AuthPage: React.FC = () => {
         return;
       }
 
-      // Tokens received in same window — force session refresh and navigate
-      await supabase.auth.refreshSession();
+      // Tokens received in same window — verify persisted session and navigate
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         window.location.replace('/tasks');

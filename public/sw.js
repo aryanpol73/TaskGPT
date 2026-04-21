@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taskgpt-v3';
+const CACHE_NAME = 'taskgpt-v4';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -20,12 +20,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (
+    event.request.mode === 'navigate' && (
     url.pathname.startsWith('/~oauth') ||
     url.pathname.startsWith('/auth') ||
     url.search.includes('code=') ||
     url.hash.includes('access_token')
+    )
   ) {
-    return; // let browser handle directly, no SW intervention
+    event.respondWith(fetch(event.request));
   }
 });
 
