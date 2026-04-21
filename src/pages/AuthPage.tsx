@@ -11,6 +11,7 @@ const AuthPage: React.FC = () => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -22,13 +23,26 @@ const AuthPage: React.FC = () => {
     setLoading(true);
     try {
       if (mode === 'signup') {
+        if (password.length < 6) {
+          toast.error('Password must be at least 6 characters');
+          setLoading(false);
+          return;
+        }
+        if (password !== confirmPassword) {
+          toast.error('Passwords do not match');
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success('Check your email to confirm your account');
+        // Auto-confirm is enabled, so sign in immediately
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) throw signInError;
+        toast.success('Account created! Welcome aboard.');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
