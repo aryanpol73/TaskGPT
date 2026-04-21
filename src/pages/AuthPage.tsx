@@ -120,7 +120,9 @@ const AuthPage: React.FC = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-muted-foreground text-sm">Password</Label>
+              <Label htmlFor="password" className="text-muted-foreground text-sm">
+                {mode === 'signup' ? 'Create password' : 'Password'}
+              </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -129,10 +131,28 @@ const AuthPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                   className="pl-10 bg-secondary/50 border-border h-12"
                 />
               </div>
             </div>
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-muted-foreground text-sm">Confirm password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="pl-10 bg-secondary/50 border-border h-12"
+                  />
+                </div>
+              </div>
+            )}
             <Button variant="ai" className="w-full h-12 text-base" disabled={loading}>
               {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </Button>

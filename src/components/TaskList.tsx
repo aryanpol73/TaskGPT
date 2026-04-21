@@ -70,7 +70,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, loading }) => {
             {activeFilter === 'completed' ? 'No completed tasks yet' : 'No tasks here'}
           </p>
           <p className="text-muted-foreground/60 text-sm mt-1">
-            Add a task above or ask the AI assistant ✨
+            Add a task above or ask TaskPilot ✨
           </p>
         </div>
       ) : (

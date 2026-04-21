@@ -8,7 +8,7 @@ interface Props {
 const faqs = [
   { q: 'How do I earn points?', a: 'Complete tasks to earn 10 points each. Maintain daily streaks for bonus points!' },
   { q: 'What are streaks?', a: 'Complete at least one task every day to build your streak. Longer streaks earn bigger rewards.' },
-  { q: 'How does the AI assistant work?', a: 'Go to the AI tab and ask anything — it can help you plan tasks, draft emails, and schedule events.' },
+  { q: 'How does TaskPilot work?', a: 'Open the TaskPilot tab and ask anything — it can help you plan tasks, draft emails, and schedule events.' },
   { q: 'Can I connect Gmail/Calendar?', a: 'Coming soon! Integration setup will be available in Settings > Integrations.' },
   { q: 'How do I set reminders?', a: 'When creating or editing a task, set a reminder time. You\'ll get a browser notification.' },
 ];
