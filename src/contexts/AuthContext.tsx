@@ -23,17 +23,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Set up listener FIRST so we never miss an auth event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
     });
 
+    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Re-check session when window regains focus (helps after OAuth redirects)
+    const onFocus = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setSession(session);
+      });
+    };
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   const signOut = async () => {
