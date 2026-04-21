@@ -58,16 +58,39 @@ const AuthPage: React.FC = () => {
     setLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/tasks`,
         extraParams: { prompt: 'select_account' },
       });
 
-      if (result.error) {
-        throw result.error;
+      if (result?.error) {
+        const msg = String(result.error?.message || result.error);
+        if (msg.toLowerCase().includes('popup')) {
+          toast.error('Popup was blocked. Please allow popups and try again.');
+        } else if (msg.toLowerCase().includes('cancel')) {
+          toast.error('Google sign-in was cancelled.');
+        } else {
+          toast.error(msg || 'Google sign-in failed');
+        }
+        setLoading(false);
+        return;
+      }
+
+      if (result?.redirected) {
+        // Browser is redirecting to Google — keep loading state
+        return;
+      }
+
+      // Tokens received in same window — force session refresh and navigate
+      await supabase.auth.refreshSession();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        window.location.replace('/tasks');
+      } else {
+        toast.error('No session received from Google. Please try again.');
+        setLoading(false);
       }
     } catch (err: any) {
       toast.error(err?.message || 'Google sign-in failed');
-    } finally {
       setLoading(false);
     }
   };
