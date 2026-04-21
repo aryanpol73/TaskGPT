@@ -11,6 +11,7 @@ const AuthPage: React.FC = () => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -22,13 +23,26 @@ const AuthPage: React.FC = () => {
     setLoading(true);
     try {
       if (mode === 'signup') {
+        if (password.length < 6) {
+          toast.error('Password must be at least 6 characters');
+          setLoading(false);
+          return;
+        }
+        if (password !== confirmPassword) {
+          toast.error('Passwords do not match');
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success('Check your email to confirm your account');
+        // Auto-confirm is enabled, so sign in immediately
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) throw signInError;
+        toast.success('Account created! Welcome aboard.');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -106,7 +120,9 @@ const AuthPage: React.FC = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-muted-foreground text-sm">Password</Label>
+              <Label htmlFor="password" className="text-muted-foreground text-sm">
+                {mode === 'signup' ? 'Create password' : 'Password'}
+              </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -115,10 +131,28 @@ const AuthPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                   className="pl-10 bg-secondary/50 border-border h-12"
                 />
               </div>
             </div>
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-muted-foreground text-sm">Confirm password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="pl-10 bg-secondary/50 border-border h-12"
+                  />
+                </div>
+              </div>
+            )}
             <Button variant="ai" className="w-full h-12 text-base" disabled={loading}>
               {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </Button>

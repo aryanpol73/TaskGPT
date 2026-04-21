@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sparkles, Send, X, Loader2 } from 'lucide-react';
+import { Send, X, Loader2, Sparkles } from 'lucide-react';
 import { useCreateTask } from '@/hooks/useTasks';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import taskPilotLogo from '@/assets/taskpilot-logo.png';
 
 interface AiMessage {
   role: 'user' | 'assistant';
@@ -67,10 +68,10 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full gradient-primary flex items-center justify-center shadow-xl animate-float ai-glow z-50 transition-transform hover:scale-110"
-        aria-label="Open AI Assistant"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full overflow-hidden shadow-xl animate-float ai-glow z-50 transition-transform hover:scale-110"
+        aria-label="Open TaskPilot"
       >
-        <Sparkles className="w-6 h-6 text-primary-foreground" />
+        <img src={taskPilotLogo} alt="TaskPilot" width={56} height={56} className="w-full h-full object-cover" />
       </button>
     );
   }
@@ -86,12 +87,16 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-primary-foreground" />
-          </div>
+          <img
+            src={taskPilotLogo}
+            alt="TaskPilot"
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-lg"
+          />
           <div>
-            <h3 className="text-sm font-semibold text-foreground">AI Assistant</h3>
-            <p className="text-xs text-muted-foreground">Ask me anything about your tasks</p>
+            <h3 className="text-sm font-semibold text-foreground">TaskPilot</h3>
+            <p className="text-xs text-muted-foreground">Your AI co-pilot for tasks</p>
           </div>
         </div>
         {!inline && (
@@ -147,7 +152,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask the AI..."
+            placeholder="Ask TaskPilot..."
             className="bg-secondary/50 border-none focus-visible:ring-1 focus-visible:ring-primary text-sm"
             disabled={loading}
           />

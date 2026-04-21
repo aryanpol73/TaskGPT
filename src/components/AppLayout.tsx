@@ -20,7 +20,7 @@ const navItems = [
   { label: 'Calendar', icon: Calendar, path: '/calendar' },
   { label: 'Mail', icon: Mail, path: '/mail' },
   { label: 'Vault', icon: Lock, path: '/vault' },
-  { label: 'AI', icon: Sparkles, path: '/ai' },
+  { label: 'TaskPilot', icon: Sparkles, path: '/ai' },
   { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
