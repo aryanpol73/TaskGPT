@@ -1,79 +1,49 @@
 
-I checked the current integration flow and found the main reason it is failing:
+Plan to fix Google OAuth login returning to the login page
 
-- Google sign-in itself is working.
-- But the app never saves a usable Gmail/Calendar connection record.
-- The UI decides “Connected” only by checking whether a row exists in `google_tokens`.
-- That table is currently empty, so Gmail and Calendar always stay in the “Connect” state.
+1. Stabilize the Google sign-in flow in the app
+- Update `src/pages/AuthPage.tsx` so Google login explicitly handles all three OAuth outcomes:
+  - redirected to Google
+  - tokens returned in the current window/popup
+  - error returned from the auth broker
+- After a successful non-redirect OAuth response, force a session refresh with the backend auth client and navigate directly to `/tasks`.
+- Keep the correct Lovable Cloud managed OAuth method: `lovable.auth.signInWithOAuth("google", ...)`.
+- Do not switch to `supabase.auth.signInWithOAuth()` because this project is using Lovable Cloud auth.
 
-Why it is happening right now
+2. Add better failure visibility
+- Replace the generic “Google sign-in failed” behavior with clearer toasts for:
+  - popup blocked
+  - sign-in cancelled
+  - no tokens/session received
+  - OAuth broker/provider error
+- This will make it obvious whether the issue is app-side, popup/PWA-related, or Google credential-related.
 
-1. The Connect button is reusing the normal Google login flow.
-2. After the redirect, the app expects `session.provider_token` and `session.provider_refresh_token` inside `AuthContext`.
-3. In the current managed Google sign-in setup, those provider tokens are not ending up in the app session path this code is listening to.
-4. Because of that, nothing gets inserted into `google_tokens`.
-5. `useGoogleConnected()` keeps returning `false`, so:
-   - Settings still shows “Connect Gmail”
-   - Mail page stays disconnected
-   - Calendar page stays disconnected
-   - AI cannot send mail or add calendar events
-6. The redirect currently goes to `window.location.origin`, so after choosing a Google account you get sent back into the app root and the router takes you to `/tasks`, which makes it look like the connect step finished but nothing changed.
-7. Settings subsection state is only stored in React state, not in the URL, so even if we returned to Settings after OAuth, it would not reliably reopen the Integrations panel after a full redirect.
+3. Harden auth session detection
+- Improve `AuthContext` so it reliably refreshes session state after OAuth returns.
+- Ensure authenticated users on `/auth` are redirected to `/tasks` once the session is available.
+- Avoid redirect loops where the app briefly thinks there is no user and shows the login page again.
 
-What I would implement to fix it
+4. PWA / service worker OAuth safety
+- Update the service worker version and keep OAuth routes fully network-only:
+  - `/~oauth`
+  - `/auth`
+- Add service worker update handling so installed PWAs get the fixed worker faster.
+- Keep the PWA icon and notification behavior unchanged.
 
-1. Separate Google login from Google service connection
-   - Keep Google sign-in for authentication only.
-   - Build a dedicated Gmail/Calendar connection flow specifically for Google API access.
+5. Verify the correct Google OAuth setup
+- Do not create a new Google Client ID yet.
+- First test with Lovable Cloud managed Google OAuth, because it requires no Google-side setup and avoids redirect URI mistakes.
+- If the published app still fails after the app-side fix, then configure a custom Google OAuth client only if needed, using the callback URL from Lovable Cloud auth settings.
 
-2. Store a real Google connection
-   - Exchange the Google authorization code on the backend.
-   - Save `access_token`, `refresh_token`, `expires_at`, and granted `scopes` into `google_tokens`.
-   - Verify the token once before marking the integration as connected.
+6. Validation after implementation
+- Test Google login from:
+  - the Lovable preview
+  - the published URL: `https://task-gpt.lovable.app`
+  - the installed PWA
+- Confirm that selecting a Google account lands inside the app at `/tasks`, not back on `/auth`.
+- Confirm email/password login and signup still work with create password + confirm password.
 
-3. Fix the post-connect return flow
-   - Return the user to Settings → Integrations instead of `/tasks`.
-   - Move the active Settings section into the URL/query string so OAuth redirects can restore the same panel.
-
-4. Make connection status accurate
-   - Replace the current boolean-only check with a richer status:
-     - connected
-     - reconnect required
-     - missing permissions
-     - not connected
-   - Show Gmail and Calendar separately so the UI reflects what is actually authorized.
-
-5. Reconnect the dependent features
-   - Update Mail page to load inbox data only after verified connection.
-   - Update Calendar page to load events only after verified connection.
-   - Keep AI assistant wired to the same verified token flow so commands like “send an email” and “add this to my calendar” work.
-
-6. Remove the broken token capture path
-   - Remove the current `AuthContext` logic that tries to capture provider tokens from the auth session after Google sign-in.
-   - That logic is the reason the DB never gets populated.
-
-7. Validate end to end
-   - Connect Google from Settings
-   - Confirm Settings immediately shows Connected
-   - Confirm Gmail loads messages
-   - Confirm Calendar loads events
-   - Confirm AI can send email and create calendar events
-
-Technical details
-
-- I verified that Google login events are happening successfully.
-- I also verified that `public.google_tokens` currently has `0` rows, which explains why the app never flips to connected.
-- The files that need adjustment are mainly:
-  - `src/components/settings/IntegrationsSection.tsx`
-  - `src/pages/SettingsPage.tsx`
-  - `src/hooks/useGoogleApi.ts`
-  - `src/contexts/AuthContext.tsx`
-  - `src/pages/MailPage.tsx`
-  - `src/pages/CalendarPage.tsx`
-  - `supabase/functions/google-api/index.ts`
-  - `supabase/functions/ai-assistant/index.ts`
-- I will likely add a dedicated backend function for the Google connection/exchange flow.
-- After the code fix, you will probably need to reconnect Google once so a real refresh token gets stored.
-- There may also be one Google Console check needed: the dedicated Gmail/Calendar OAuth redirect URI must be registered for your Google OAuth client.
-
-So the short answer is: Google account selection is succeeding, but the app is not actually saving a Gmail/Calendar connection afterward, and the UI is using that missing saved connection as the only source of truth.
+Technical notes
+- The current app already uses the correct generated Lovable Cloud auth wrapper.
+- The likely failure is that OAuth returns successfully but the app does not reliably refresh/navigate after the session is set, or the installed/preview environment is returning to `/auth` before session detection finishes.
+- If the problem happens only in preview and not on the published URL, it may be a Lovable Cloud preview-environment OAuth configuration issue rather than an app code bug.
