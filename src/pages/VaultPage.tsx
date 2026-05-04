@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Search, Upload, Users, Cloud, FolderOpen, Lock } from 'lucide-react';
+import { Search, Upload, Users, Cloud, FolderOpen, Lock, LockKeyhole, Fingerprint } from 'lucide-react';
+import { useBiometricLock } from '@/hooks/useBiometricLock';
+import VaultLockScreen from '@/components/vault/VaultLockScreen';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +18,9 @@ import FamilyDialog from '@/components/vault/FamilyDialog';
 const VaultPage: React.FC = () => {
   const { user } = useAuth();
   const { documents, loading, deleteDocument } = useVault();
+  const bio = useBiometricLock();
+  const [bypassLock, setBypassLock] = useState(false);
+  const isLocked = !bypassLock && (bio.supported ? !bio.unlocked : false);
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [familyOpen, setFamilyOpen] = useState(false);
