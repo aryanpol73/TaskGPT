@@ -88,11 +88,57 @@ const VaultPage: React.FC = () => {
       : 'Drive backup coming soon');
   };
 
+  if (bio.checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full gradient-primary animate-pulse-glow" />
+      </div>
+    );
+  }
+
+  if (isLocked) {
+    return (
+      <VaultLockScreen
+        supported={bio.supported}
+        enrolled={bio.enrolled}
+        onEnroll={bio.enroll}
+        onUnlock={bio.unlock}
+        onSkip={() => setBypassLock(true)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen p-4 md:p-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
         <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center ai-glow">
+              <Lock className="w-5 h-5 text-primary-foreground" />
+            </div>
+            Vault
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">Secure, AI-powered document storage</p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {bio.supported && bio.enrolled && (
+            <Button variant="outline" size="sm" onClick={bio.lock} title="Lock vault">
+              <LockKeyhole className="w-4 h-4 mr-1" /> Lock
+            </Button>
+          )}
+          {bio.supported && !bio.enrolled && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try { await bio.enroll(); toast.success('Biometric unlock enabled'); }
+                catch (e: any) { toast.error(e?.message || 'Enrollment failed'); }
+              }}
+            >
+              <Fingerprint className="w-4 h-4 mr-1" /> Enable biometric
+            </Button>
+          )}
           <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center ai-glow">
               <Lock className="w-5 h-5 text-primary-foreground" />
