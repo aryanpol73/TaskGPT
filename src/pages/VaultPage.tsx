@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Upload, Users, Cloud, FolderOpen, Lock, LockKeyhole, Fingerprint } from 'lucide-react';
 import { useBiometricLock } from '@/hooks/useBiometricLock';
 import VaultLockScreen from '@/components/vault/VaultLockScreen';
@@ -21,6 +21,25 @@ const VaultPage: React.FC = () => {
   const bio = useBiometricLock();
   const [bypassLock, setBypassLock] = useState(false);
   const isLocked = !bypassLock && (bio.supported ? !bio.unlocked : false);
+
+  // Auto-lock vault when leaving the page or tab is hidden
+  useEffect(() => {
+    return () => {
+      if (bio.supported && bio.enrolled) bio.lock();
+      setBypassLock(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === 'hidden' && bio.supported && bio.enrolled) {
+        bio.lock();
+      }
+    };
+    document.addEventListener('visibilitychange', onHide);
+    return () => document.removeEventListener('visibilitychange', onHide);
+  }, [bio]);
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [familyOpen, setFamilyOpen] = useState(false);
