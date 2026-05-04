@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTaskReminders } from '@/hooks/useTaskReminders';
 
 const navItems = [
   { label: 'Tasks', icon: ClipboardList, path: '/tasks' },
@@ -29,6 +30,7 @@ const AppLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  useTaskReminders();
 
   const isActive = (path: string) => location.pathname === path;
 
