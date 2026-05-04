@@ -138,6 +138,7 @@ const VaultPage: React.FC = () => {
             >
               <Fingerprint className="w-4 h-4 mr-1" /> Enable biometric
             </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => setFamilyOpen(true)}>
             <Users className="w-4 h-4 mr-1" /> Family
           </Button>
