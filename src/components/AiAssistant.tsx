@@ -23,8 +23,21 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [voiceReply, setVoiceReply] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const createTask = useCreateTask();
+
+  const voice = useVoiceInput({
+    onResult: (text) => setInput(text),
+    onEnd: (finalText) => {
+      if (finalText) {
+        setInput(finalText);
+        // Auto-send after voice input
+        setTimeout(() => handleSendRef.current?.(), 150);
+      }
+    },
+  });
+  const handleSendRef = useRef<() => void>();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
