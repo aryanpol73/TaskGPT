@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Inbox, Send, Star, Loader2, RefreshCw } from 'lucide-react';
+import { Mail, Inbox, Send, Star, Loader2, RefreshCw, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,9 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useGoogleConnected, useGmailMessages, useSendEmail } from '@/hooks/useGoogleApi';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import ContactsDialog from '@/components/ContactsDialog';
 
 const MailPage: React.FC = () => {
   const [showCompose, setShowCompose] = useState(false);
+  const [showContacts, setShowContacts] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
