@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, X, Loader2, Sparkles } from 'lucide-react';
+import { Send, X, Loader2, Sparkles, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { useCreateTask } from '@/hooks/useTasks';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useVoiceInput, speak } from '@/hooks/useVoiceInput';
 import taskPilotLogo from '@/assets/taskpilot-logo.png';
 
 interface AiMessage {
