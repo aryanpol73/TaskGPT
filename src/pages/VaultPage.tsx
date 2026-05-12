@@ -19,23 +19,17 @@ const VaultPage: React.FC = () => {
   const { user } = useAuth();
   const { documents, loading, deleteDocument } = useVault();
   const bio = useBiometricLock();
-  const [bypassLock, setBypassLock] = useState(false);
-  const isLocked = !bypassLock && (bio.supported ? !bio.unlocked : false);
+  const isLocked = !bio.unlocked;
 
   // Auto-lock vault when leaving the page or tab is hidden
   useEffect(() => {
-    return () => {
-      if (bio.supported && bio.enrolled) bio.lock();
-      setBypassLock(false);
-    };
+    return () => { bio.lock(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const onHide = () => {
-      if (document.visibilityState === 'hidden' && bio.supported && bio.enrolled) {
-        bio.lock();
-      }
+      if (document.visibilityState === 'hidden') bio.lock();
     };
     document.addEventListener('visibilitychange', onHide);
     return () => document.removeEventListener('visibilitychange', onHide);
@@ -116,15 +110,7 @@ const VaultPage: React.FC = () => {
   }
 
   if (isLocked) {
-    return (
-      <VaultLockScreen
-        supported={bio.supported}
-        enrolled={bio.enrolled}
-        onEnroll={bio.enroll}
-        onUnlock={bio.unlock}
-        onSkip={() => setBypassLock(true)}
-      />
-    );
+    return <VaultLockScreen bio={bio} />;
   }
 
   return (
