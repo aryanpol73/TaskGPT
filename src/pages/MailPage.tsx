@@ -151,6 +151,15 @@ const MailPage: React.FC = () => {
           ))}
         </div>
       )}
+
+      <ContactsDialog open={showContacts} onOpenChange={setShowContacts} />
+      <ContactsDialog
+        open={showPicker}
+        onOpenChange={setShowPicker}
+        onPick={(_c, email) => {
+          setTo(prev => (prev.trim() ? `${prev}, ${email}` : email));
+        }}
+      />
     </div>
   );
 };
