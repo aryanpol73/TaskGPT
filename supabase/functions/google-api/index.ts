@@ -264,3 +264,58 @@ async function calendarCreate(token: string, params: {
   if (!res.ok) throw new Error(`Calendar create failed [${res.status}]: ${await res.text()}`);
   return res.json();
 }
+
+async function contactsList(token: string, params?: { query?: string; pageSize?: number }) {
+  const pageSize = String(params?.pageSize || 200);
+  let url: string;
+  if (params?.query && params.query.trim()) {
+    const q = new URLSearchParams({
+      query: params.query,
+      pageSize: String(Math.min(Number(pageSize), 30)),
+      readMask: "names,emailAddresses,phoneNumbers,photos",
+    });
+    url = `https://people.googleapis.com/v1/people:searchContacts?${q}`;
+  } else {
+    const q = new URLSearchParams({
+      pageSize,
+      personFields: "names,emailAddresses,phoneNumbers,photos",
+      sortOrder: "FIRST_NAME_ASCENDING",
+    });
+    url = `https://people.googleapis.com/v1/people/me/connections?${q}`;
+  }
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error(`Contacts list failed [${res.status}]: ${await res.text()}`);
+  const data = await res.json();
+  const items = data.connections || (data.results || []).map((r: any) => r.person) || [];
+  return {
+    contacts: items.map((p: any) => ({
+      resourceName: p.resourceName,
+      name: p.names?.[0]?.displayName || p.emailAddresses?.[0]?.value || "(no name)",
+      givenName: p.names?.[0]?.givenName || "",
+      familyName: p.names?.[0]?.familyName || "",
+      emails: (p.emailAddresses || []).map((e: any) => e.value).filter(Boolean),
+      phones: (p.phoneNumbers || []).map((e: any) => e.value).filter(Boolean),
+      photo: p.photos?.[0]?.url || null,
+    })),
+  };
+}
+
+async function contactsCreate(token: string, params: { name: string; email?: string; phone?: string }) {
+  const body: any = {
+    names: [{ givenName: params.name }],
+  };
+  if (params.email) body.emailAddresses = [{ value: params.email }];
+  if (params.phone) body.phoneNumbers = [{ value: params.phone }];
+
+  const res = await fetch("https://people.googleapis.com/v1/people:createContact", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`Contacts create failed [${res.status}]: ${await res.text()}`);
+  return res.json();
+}
