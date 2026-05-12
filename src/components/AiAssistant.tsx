@@ -78,6 +78,13 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
       setLoading(false);
     }
   };
+  handleSendRef.current = handleSend;
+
+  const toggleMic = async () => {
+    if (voice.listening) { voice.stop(); return; }
+    try { await voice.start(); }
+    catch (e: any) { toast.error(e?.message || 'Mic unavailable'); }
+  };
 
   if (!open && !inline) {
     return (
