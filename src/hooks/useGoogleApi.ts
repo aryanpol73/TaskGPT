@@ -67,3 +67,34 @@ export function useCreateCalendarEvent() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['calendar-events'] }),
   });
 }
+
+export interface GoogleContact {
+  resourceName: string;
+  name: string;
+  givenName: string;
+  familyName: string;
+  emails: string[];
+  phones: string[];
+  photo: string | null;
+}
+
+export function useContacts(enabled: boolean, query?: string) {
+  return useQuery({
+    queryKey: ['google-contacts', query || ''],
+    queryFn: async () => {
+      const data = await callGoogleApi('contacts.list', { query, pageSize: 200 });
+      return (data?.contacts || []) as GoogleContact[];
+    },
+    enabled,
+    staleTime: 60000,
+  });
+}
+
+export function useCreateContact() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: { name: string; email?: string; phone?: string }) =>
+      callGoogleApi('contacts.create', params),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['google-contacts'] }),
+  });
+}

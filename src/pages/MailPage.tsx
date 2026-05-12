@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Inbox, Send, Star, Loader2, RefreshCw } from 'lucide-react';
+import { Mail, Inbox, Send, Star, Loader2, RefreshCw, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,9 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useGoogleConnected, useGmailMessages, useSendEmail } from '@/hooks/useGoogleApi';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import ContactsDialog from '@/components/ContactsDialog';
 
 const MailPage: React.FC = () => {
   const [showCompose, setShowCompose] = useState(false);
+  const [showContacts, setShowContacts] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -66,6 +69,9 @@ const MailPage: React.FC = () => {
           <Button variant="ghost" size="icon" onClick={() => queryClient.invalidateQueries({ queryKey: ['gmail-messages'] })}>
             <RefreshCw className="w-4 h-4" />
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowContacts(true)}>
+            <Users className="w-4 h-4 mr-1" /> Contacts
+          </Button>
           <Dialog open={showCompose} onOpenChange={setShowCompose}>
             <DialogTrigger asChild>
               <Button variant="ai" size="sm" className="gap-2">
@@ -75,7 +81,12 @@ const MailPage: React.FC = () => {
             <DialogContent className="glass-strong">
               <DialogHeader><DialogTitle>New Email</DialogTitle></DialogHeader>
               <div className="space-y-3 pt-2">
-                <Input placeholder="To" value={to} onChange={e => setTo(e.target.value)} className="bg-secondary/50" />
+                <div className="flex gap-2">
+                  <Input placeholder="To (name or email)" value={to} onChange={e => setTo(e.target.value)} className="bg-secondary/50 flex-1" />
+                  <Button type="button" variant="outline" size="icon" onClick={() => setShowPicker(true)} title="Pick from contacts">
+                    <Users className="w-4 h-4" />
+                  </Button>
+                </div>
                 <Input placeholder="Subject" value={subject} onChange={e => setSubject(e.target.value)} className="bg-secondary/50" />
                 <Textarea placeholder="Write your email..." value={body} onChange={e => setBody(e.target.value)} className="bg-secondary/50 min-h-[150px]" />
                 <Button variant="ai" className="w-full" onClick={handleSend} disabled={sendEmail.isPending}>
@@ -140,6 +151,15 @@ const MailPage: React.FC = () => {
           ))}
         </div>
       )}
+
+      <ContactsDialog open={showContacts} onOpenChange={setShowContacts} />
+      <ContactsDialog
+        open={showPicker}
+        onOpenChange={setShowPicker}
+        onPick={(_c, email) => {
+          setTo(prev => (prev.trim() ? `${prev}, ${email}` : email));
+        }}
+      />
     </div>
   );
 };

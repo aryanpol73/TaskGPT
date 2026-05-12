@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, X, Loader2, Sparkles } from 'lucide-react';
+import { Send, X, Loader2, Sparkles, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { useCreateTask } from '@/hooks/useTasks';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useVoiceInput, speak } from '@/hooks/useVoiceInput';
 import taskPilotLogo from '@/assets/taskpilot-logo.png';
 
 interface AiMessage {
@@ -22,8 +23,21 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [voiceReply, setVoiceReply] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const createTask = useCreateTask();
+
+  const voice = useVoiceInput({
+    onResult: (text) => setInput(text),
+    onEnd: (finalText) => {
+      if (finalText) {
+        setInput(finalText);
+        // Auto-send after voice input
+        setTimeout(() => handleSendRef.current?.(), 150);
+      }
+    },
+  });
+  const handleSendRef = useRef<() => void>();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,6 +60,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
 
       const assistantContent = data?.content || 'Sorry, I could not process that.';
       setMessages(prev => [...prev, { role: 'assistant', content: assistantContent }]);
+      if (voiceReply) speak(assistantContent);
 
       // If AI created tasks, handle them
       if (data?.tasks && Array.isArray(data.tasks)) {
@@ -62,6 +77,13 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
     } finally {
       setLoading(false);
     }
+  };
+  handleSendRef.current = handleSend;
+
+  const toggleMic = async () => {
+    if (voice.listening) { voice.stop(); return; }
+    try { await voice.start(); }
+    catch (e: any) { toast.error(e?.message || 'Mic unavailable'); }
   };
 
   if (!open && !inline) {
@@ -99,11 +121,20 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
             <p className="text-xs text-muted-foreground">Your AI co-pilot for tasks</p>
           </div>
         </div>
-        {!inline && (
-          <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
-            <X className="w-5 h-5" />
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => { setVoiceReply(v => !v); if (voiceReply) window.speechSynthesis?.cancel(); }}
+            className="text-muted-foreground hover:text-foreground p-1"
+            title={voiceReply ? 'Voice replies on' : 'Voice replies off'}
+          >
+            {voiceReply ? <Volume2 className="w-4 h-4 text-primary" /> : <VolumeX className="w-4 h-4" />}
           </button>
-        )}
+          {!inline && (
+            <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground p-1">
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -152,10 +183,22 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask TaskPilot..."
+            placeholder={voice.listening ? 'Listening…' : 'Ask or speak to TaskPilot...'}
             className="bg-secondary/50 border-none focus-visible:ring-1 focus-visible:ring-primary text-sm"
             disabled={loading}
           />
+          {voice.supported && (
+            <Button
+              type="button"
+              variant={voice.listening ? 'ai' : 'outline'}
+              size="icon"
+              onClick={toggleMic}
+              disabled={loading}
+              title={voice.listening ? 'Stop listening' : 'Speak'}
+            >
+              {voice.listening ? <MicOff className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
+            </Button>
+          )}
           <Button type="submit" variant="ai" size="icon" disabled={loading || !input.trim()}>
             <Send className="w-4 h-4" />
           </Button>
