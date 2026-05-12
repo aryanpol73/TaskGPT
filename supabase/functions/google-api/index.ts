@@ -112,6 +112,12 @@ Deno.serve(async (req) => {
       case "calendar.create":
         result = await calendarCreate(accessToken, params);
         break;
+      case "contacts.list":
+        result = await contactsList(accessToken, params);
+        break;
+      case "contacts.create":
+        result = await contactsCreate(accessToken, params);
+        break;
       default:
         return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
           status: 400,
