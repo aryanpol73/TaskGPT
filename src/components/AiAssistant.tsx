@@ -121,11 +121,20 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
             <p className="text-xs text-muted-foreground">Your AI co-pilot for tasks</p>
           </div>
         </div>
-        {!inline && (
-          <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
-            <X className="w-5 h-5" />
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => { setVoiceReply(v => !v); if (voiceReply) window.speechSynthesis?.cancel(); }}
+            className="text-muted-foreground hover:text-foreground p-1"
+            title={voiceReply ? 'Voice replies on' : 'Voice replies off'}
+          >
+            {voiceReply ? <Volume2 className="w-4 h-4 text-primary" /> : <VolumeX className="w-4 h-4" />}
           </button>
-        )}
+          {!inline && (
+            <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground p-1">
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -174,10 +183,22 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask TaskPilot..."
+            placeholder={voice.listening ? 'Listening…' : 'Ask or speak to TaskPilot...'}
             className="bg-secondary/50 border-none focus-visible:ring-1 focus-visible:ring-primary text-sm"
             disabled={loading}
           />
+          {voice.supported && (
+            <Button
+              type="button"
+              variant={voice.listening ? 'ai' : 'outline'}
+              size="icon"
+              onClick={toggleMic}
+              disabled={loading}
+              title={voice.listening ? 'Stop listening' : 'Speak'}
+            >
+              {voice.listening ? <MicOff className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
+            </Button>
+          )}
           <Button type="submit" variant="ai" size="icon" disabled={loading || !input.trim()}>
             <Send className="w-4 h-4" />
           </Button>
