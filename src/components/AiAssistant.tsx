@@ -60,6 +60,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ inline = false }) => {
 
       const assistantContent = data?.content || 'Sorry, I could not process that.';
       setMessages(prev => [...prev, { role: 'assistant', content: assistantContent }]);
+      if (voiceReply) speak(assistantContent);
 
       // If AI created tasks, handle them
       if (data?.tasks && Array.isArray(data.tasks)) {
