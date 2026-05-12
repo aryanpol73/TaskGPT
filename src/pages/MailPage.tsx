@@ -69,6 +69,9 @@ const MailPage: React.FC = () => {
           <Button variant="ghost" size="icon" onClick={() => queryClient.invalidateQueries({ queryKey: ['gmail-messages'] })}>
             <RefreshCw className="w-4 h-4" />
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowContacts(true)}>
+            <Users className="w-4 h-4 mr-1" /> Contacts
+          </Button>
           <Dialog open={showCompose} onOpenChange={setShowCompose}>
             <DialogTrigger asChild>
               <Button variant="ai" size="sm" className="gap-2">
@@ -78,7 +81,12 @@ const MailPage: React.FC = () => {
             <DialogContent className="glass-strong">
               <DialogHeader><DialogTitle>New Email</DialogTitle></DialogHeader>
               <div className="space-y-3 pt-2">
-                <Input placeholder="To" value={to} onChange={e => setTo(e.target.value)} className="bg-secondary/50" />
+                <div className="flex gap-2">
+                  <Input placeholder="To (name or email)" value={to} onChange={e => setTo(e.target.value)} className="bg-secondary/50 flex-1" />
+                  <Button type="button" variant="outline" size="icon" onClick={() => setShowPicker(true)} title="Pick from contacts">
+                    <Users className="w-4 h-4" />
+                  </Button>
+                </div>
                 <Input placeholder="Subject" value={subject} onChange={e => setSubject(e.target.value)} className="bg-secondary/50" />
                 <Textarea placeholder="Write your email..." value={body} onChange={e => setBody(e.target.value)} className="bg-secondary/50 min-h-[150px]" />
                 <Button variant="ai" className="w-full" onClick={handleSend} disabled={sendEmail.isPending}>
